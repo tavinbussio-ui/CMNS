@@ -8,11 +8,6 @@
 <meta name="apple-mobile-web-app-title" content="MOS">
 <title>MOS — North Star</title>
 <style>
-/* Offline-safe font stack — no external requests needed */
-/* Bebas Neue fallback: uses system condensed sans on all devices */
-/* IBM Plex Mono fallback: uses SF Mono on iPhone (looks identical) */
-</style>
-<style>
 :root {
   --bg: #080808;
   --s1: #101010;
@@ -43,6 +38,24 @@ body{
   font-family:'ui-monospace','SF Mono','Menlo','Courier New',monospace;
   font-size:13px;
 }
+
+/* ── LOADING SCREEN ── */
+#loading-screen{
+  position:fixed;inset:0;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:9999;gap:16px;
+}
+#loading-screen.hidden{display:none;}
+.loading-title{
+  font-family:'Arial Narrow','Impact','Haettenschweiler',sans-serif-condensed,sans-serif;
+  font-size:36px;letter-spacing:0.04em;color:var(--lime);
+}
+.loading-sub{font-size:9px;letter-spacing:0.25em;color:var(--muted);text-transform:uppercase;}
+.loading-dot{
+  width:6px;height:6px;border-radius:50%;background:var(--lime);
+  animation:pulse 1.2s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:0.3}50%{opacity:1}}
 
 /* ── LAYOUT ── */
 .app{display:flex;flex-direction:column;height:100vh;height:100dvh;}
@@ -390,7 +403,7 @@ select.cal-input option{background:#181818;}
 .modal-emoji{font-size:48px;margin-bottom:12px;}
 .modal-title{font-family:'Arial Narrow','Impact','Haettenschweiler',sans-serif-condensed,sans-serif;font-size:32px;color:var(--lime);margin-bottom:6px;letter-spacing:0.05em;}
 .modal-body{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:20px;}
-.modal-close{background:var(--lime);color:var(--bg);border:none;border-radius:7px;padding:11px 24px;font-family:'ui-monospace','SF Mono','Menlo','Courier New',monospace;font-size:11px;font-weight:700;letter-spacing:0.12em;cursor:pointer;text-transform:uppercase;width:100%;}
+.modal-close{background:var(--lime);color:var(--bg);border:none;border-radius:7px;padding:11px 24px;font-family:'ui-monospace',monospace;font-size:11px;font-weight:700;letter-spacing:0.12em;cursor:pointer;text-transform:uppercase;width:100%;}
 
 /* ── REVIEW ── */
 .rev-stat-row{display:flex;gap:6px;margin-bottom:16px;}
@@ -403,6 +416,16 @@ select.cal-input option{background:#181818;}
 
 /* ── DIVIDER ── */
 .divider{height:1px;background:var(--border);margin:0 18px 20px;}
+
+/* ── SYNC STATUS ── */
+.sync-dot{
+  width:6px;height:6px;border-radius:50%;
+  display:inline-block;margin-right:6px;
+  background:var(--muted);
+}
+.sync-dot.synced{background:var(--body);}
+.sync-dot.syncing{background:var(--orange);animation:pulse 1s infinite;}
+.sync-dot.error{background:#f53c3c;}
 </style>
 <meta name="theme-color" content="#080808">
 <script>
@@ -415,6 +438,12 @@ if('serviceWorker' in navigator){
 </head>
 <body>
 
+<!-- LOADING SCREEN -->
+<div id="loading-screen">
+  <div class="loading-title">MOS</div>
+  <div class="loading-sub">Syncing your data...</div>
+  <div class="loading-dot"></div>
+</div>
 
 <!-- EDIT PAST DAY MODAL -->
 <div class="modal-overlay" id="past-modal">
@@ -496,7 +525,6 @@ if('serviceWorker' in navigator){
       </div>
     </div>
   </div>
-
   <div class="sec">
     <div class="card" style="margin-bottom:8px;">
       <div class="score-row">
@@ -508,7 +536,6 @@ if('serviceWorker' in navigator){
       </div>
       <div style="font-size:9px;color:var(--muted);letter-spacing:0.15em;text-transform:uppercase;">Today's Score</div>
     </div>
-
     <div class="tile-grid">
       <div class="tile t-df" id="tile-df" onclick="toggleCat('df')">
         <div class="tile-name">Deep Focus</div>
@@ -527,19 +554,16 @@ if('serviceWorker' in navigator){
         <div class="tile-box"><svg viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12"/></svg></div>
       </div>
     </div>
-    <!-- Output full width -->
     <div class="tile t-output" id="tile-output" onclick="toggleCat('output')" style="margin-bottom:0;">
       <div class="tile-name">Output</div>
       <div class="tile-box"><svg viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12"/></svg></div>
     </div>
     <input class="proof-input" id="output-proof" placeholder="Output proof — 1 line..." />
   </div>
-
   <div class="sec">
     <div class="sec-lbl">This Week</div>
     <div class="wk-row" id="wk-row"></div>
   </div>
-
   <div class="sec">
     <div class="sec-lbl">Streak</div>
     <div class="streak-card">
@@ -551,7 +575,6 @@ if('serviceWorker' in navigator){
       <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--lime)" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
     </div>
   </div>
-
   <div class="sec">
     <div class="sec-lbl">Notes</div>
     <textarea class="ns-input" id="today-notes" rows="2" placeholder="Optional notes for today..."></textarea>
@@ -579,16 +602,13 @@ if('serviceWorker' in navigator){
     <div class="hdr-sub">Yearly Plan</div>
     <div class="hdr-title">North <em>Star</em></div>
   </div>
-
   <div class="sec">
     <div class="sec-lbl">North Star (One sentence)</div>
     <textarea class="ns-input" id="ns-text" rows="2" placeholder="Your North Star mission statement..."></textarea>
     <div class="sec-lbl" style="margin-top:8px;">Success Metric</div>
     <input class="ns-input" id="ns-metric" style="margin-bottom:0;" placeholder="How you'll know you won this year..." />
   </div>
-
   <div class="divider"></div>
-
   <div class="sec">
     <div class="sec-lbl">12 Months — Goals & Projects</div>
     <div id="monthly-list"></div>
@@ -682,20 +702,76 @@ if('serviceWorker' in navigator){
 
 <script>
 // ══════════════════════════════════════════════
-// STATE
+// CLOUD STORAGE LAYER
+// Replaces localStorage with window.storage API
+// Data syncs automatically across all devices
 // ══════════════════════════════════════════════
+const STORAGE_KEY = 'mos-data';
+
 let S = {
-  days: {},       // 'YYYY-MM-DD': { df,body,mind,spirit,output,dayType,proof,notes }
-  projects: [],   // { title,why,targetMonth,status,actions:[{text,done}],monthlyGoals }
-  months: {},     // { 'Jan': { goal, projectIdx } }
-  weeks: {},      // 'YYYY-WW': { target, done, reviewNotes, howGoalWent }
+  days: {},
+  projects: [],
+  months: {},
+  weeks: {},
   northStar: '',
   nsMetric: '',
   milestonesSeen: []
 };
 
-function save(){ try{ localStorage.setItem('mos2', JSON.stringify(S)); }catch(e){} }
-function load(){ try{ const d=localStorage.getItem('mos2'); if(d) S=JSON.parse(d); }catch(e){} }
+let saveTimeout = null;
+
+async function save() {
+  // Debounce saves to avoid hammering the API
+  clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(async () => {
+    try {
+      await window.storage.set(STORAGE_KEY, JSON.stringify(S));
+    } catch(e) {
+      // Fallback to localStorage if cloud storage unavailable
+      try { localStorage.setItem('mos2', JSON.stringify(S)); } catch(e2) {}
+    }
+  }, 500);
+}
+
+async function load() {
+  try {
+    const result = await window.storage.get(STORAGE_KEY);
+    if (result && result.value) {
+      const parsed = JSON.parse(result.value);
+      S = parsed;
+      if (!S.milestonesSeen) S.milestonesSeen = [];
+      if (!S.months) S.months = {};
+      if (!S.weeks) S.weeks = {};
+      if (!S.projects) S.projects = [];
+    } else {
+      // No cloud data yet — try migrating from localStorage
+      try {
+        const local = localStorage.getItem('mos2');
+        if (local) {
+          S = JSON.parse(local);
+          if (!S.milestonesSeen) S.milestonesSeen = [];
+          if (!S.months) S.months = {};
+          if (!S.weeks) S.weeks = {};
+          if (!S.projects) S.projects = [];
+          // Immediately push to cloud
+          await window.storage.set(STORAGE_KEY, JSON.stringify(S));
+        }
+      } catch(e) {}
+    }
+  } catch(e) {
+    // Cloud storage unavailable — fall back to localStorage
+    try {
+      const local = localStorage.getItem('mos2');
+      if (local) {
+        S = JSON.parse(local);
+        if (!S.milestonesSeen) S.milestonesSeen = [];
+        if (!S.months) S.months = {};
+        if (!S.weeks) S.weeks = {};
+        if (!S.projects) S.projects = [];
+      }
+    } catch(e2) {}
+  }
+}
 
 // ══════════════════════════════════════════════
 // HELPERS
@@ -726,7 +802,6 @@ function weekDates(){
 }
 
 function weekKey(ds){
-  // Use Sunday-based week key: find the Sunday of this day's week
   const d=new Date(ds+'T12:00:00');
   const sun=new Date(d);
   sun.setDate(d.getDate()-d.getDay());
@@ -759,7 +834,6 @@ function renderToday(){
 
   const day=getDay(td);
 
-  // Day type buttons
   document.querySelectorAll('.dt-btn').forEach(b=>b.classList.remove('on'));
   if(day.dayType){
     document.querySelectorAll('.dt-btn').forEach(b=>{
@@ -767,7 +841,6 @@ function renderToday(){
     });
   }
 
-  // Tiles
   ['df','body','mind','spirit','output'].forEach(k=>{
     const t=document.getElementById('tile-'+k);
     if(t){ if(day[k]) t.classList.add('on'); else t.classList.remove('on'); }
@@ -781,7 +854,6 @@ function renderToday(){
   document.getElementById('output-proof').value=day.proof||'';
   document.getElementById('today-notes').value=day.notes||'';
 
-  // Week dots
   const dates=weekDates();
   const row=document.getElementById('wk-row');
   row.innerHTML='';
@@ -798,11 +870,9 @@ function renderToday(){
     row.appendChild(div);
   });
 
-  // Streak
   const streak=calcStreak();
   document.getElementById('streak-num').textContent=streak;
 
-  // Next milestone
   const milestones=[7,14,21,30,50,66,100,150,200,365];
   const next=milestones.find(m=>m>streak);
   const nm=document.getElementById('next-milestone');
@@ -822,7 +892,6 @@ function calcStreak(){
     if(isPerfect(S.days[ds])){
       streak++;
     } else if(i===0){
-      // Today not perfect yet — don't break, check yesterday onward
       continue;
     } else {
       break;
@@ -841,7 +910,6 @@ function setDayType(t){
 function toggleCat(k){
   const td=todayStr();
   if(!S.days[td]) S.days[td]={};
-  // Save any typed proof/notes before toggling so they aren't lost
   const proofEl=document.getElementById('output-proof');
   const notesEl=document.getElementById('today-notes');
   if(proofEl) S.days[td].proof=proofEl.value.trim();
@@ -857,17 +925,13 @@ function saveDay(){
   S.days[td].notes=document.getElementById('today-notes').value.trim();
   save();
   checkMilestone();
-  // Visual button flash
   const btn=document.querySelector('#pg-today .btn-lime');
   if(btn){
     btn.textContent='✓ Saved';
     btn.style.background='#3cf594';
-    setTimeout(()=>{
-      btn.textContent='Save Today';
-      btn.style.background='';
-    },1500);
+    setTimeout(()=>{ btn.textContent='Save Today'; btn.style.background=''; },1500);
   }
-  toast('Day saved');
+  toast('Day saved — synced');
 }
 
 // ══════════════════════════════════════════════
@@ -888,11 +952,11 @@ const MILESTONES={
 
 function checkMilestone(){
   const streak=calcStreak();
-  const key=streak;
-  if(MILESTONES[String(key)] && !S.milestonesSeen.includes(String(key))){
-    S.milestonesSeen.push(String(key));
+  const key=String(streak);
+  if(MILESTONES[key] && !S.milestonesSeen.includes(key)){
+    S.milestonesSeen.push(key);
     save();
-    const m=MILESTONES[String(key)];
+    const m=MILESTONES[key];
     document.getElementById('modal-emoji').textContent=m.emoji;
     document.getElementById('modal-title').textContent=m.title;
     document.getElementById('modal-body').textContent=m.body;
@@ -907,7 +971,6 @@ function closeModal(){ document.getElementById('modal').classList.remove('show')
 // ══════════════════════════════════════════════
 function renderHistory(){
   const list=document.getElementById('history-list');
-  // Group days by week
   const byWeek={};
   Object.keys(S.days).sort().reverse().forEach(ds=>{
     const wk=weekKey(ds);
@@ -992,10 +1055,8 @@ function saveNorthStar(){
   save(); toast('North Star saved');
 }
 
-// North Star saves on input change AND blur (see init)
-
 // ══════════════════════════════════════════════
-// MONTHLY — Goal + 4 Projects per month
+// MONTHLY
 // ══════════════════════════════════════════════
 const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const MONTH_NAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -1003,7 +1064,7 @@ const MONTH_NAMES=['January','February','March','April','May','June','July','Aug
 function renderMonthly(){
   const list=document.getElementById('monthly-list');
   list.innerHTML='';
-  const curMonth=new Date().getMonth(); // 0-based
+  const curMonth=new Date().getMonth();
   MONTHS.forEach((mn,mi)=>{
     const mData=S.months[mn]||{goal:'',projects:['','','','']};
     if(!mData.projects) mData.projects=['','','',''];
@@ -1027,7 +1088,7 @@ function renderMonthly(){
       <div class="proj-body" id="mb-${mn}" ${isCurrent?'style="display:block;"':''}>
         <div class="proj-field-lbl">Monthly Goal</div>
         <input class="ns-input" style="margin-bottom:12px;"
-          value="${mData.goal||''}" placeholder="One sentence goal for ${mn}..."
+          value="${(mData.goal||'').replace(/"/g,'&quot;')}" placeholder="One sentence goal for ${mn}..."
           onblur="saveMonthGoal('${mn}',this.value)"
           oninput="saveMonthGoal('${mn}',this.value)" />
         <div class="proj-field-lbl">4 Weekly Projects</div>
@@ -1035,7 +1096,7 @@ function renderMonthly(){
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
             <div style="font-family:'Arial Narrow','Impact',sans-serif;font-size:18px;color:var(--muted2);width:20px;flex-shrink:0;text-align:center;">${i+1}</div>
             <input class="ns-input" style="margin-bottom:0;flex:1;"
-              value="${(mData.projects&&mData.projects[i])||''}"
+              value="${((mData.projects&&mData.projects[i])||'').replace(/"/g,'&quot;')}"
               placeholder="Week ${i+1} project..."
               onblur="saveMonthProject('${mn}',${i},this.value)"
               oninput="saveMonthProject('${mn}',${i},this.value)" />
@@ -1044,7 +1105,6 @@ function renderMonthly(){
       </div>
     `;
     list.appendChild(el);
-    // Auto-open current month arrow
     if(isCurrent){
       setTimeout(()=>{
         const arrow=document.getElementById('marrow-'+mn);
@@ -1057,17 +1117,12 @@ function renderMonthly(){
 function toggleMonth(mn){
   const body=document.getElementById('mb-'+mn);
   const arrow=document.getElementById('marrow-'+mn);
-  const open=body.classList.toggle('open');
-  // Also handle inline style for current month
-  if(body.style.display==='block'&&!body.classList.contains('open')){
+  if(body.style.display==='block'){
     body.style.display='none';
     if(arrow) arrow.style.transform='';
-  } else if(open||body.style.display==='none'){
+  } else {
     body.style.display='block';
     if(arrow) arrow.style.transform='rotate(180deg)';
-  } else {
-    body.style.display='none';
-    if(arrow) arrow.style.transform='';
   }
 }
 
@@ -1102,21 +1157,6 @@ function renderWeeklyPlan(){
   const mn=getMonthForDate(td);
   const monthGoal=(S.months[mn]||{}).goal||'';
   const wkData=S.weeks[wk]||{};
-
-  // Pull last week's goal if this week has none yet
-  let lastWeekGoal='';
-  if(!wkData.target){
-    const lastSun=new Date();
-    lastSun.setDate(lastSun.getDate()-7-lastSun.getDay());
-    const ly=lastSun.getFullYear();
-    const lm=String(lastSun.getMonth()+1).padStart(2,'0');
-    const ld=String(lastSun.getDate()).padStart(2,'0');
-    const lastWk=ly+'-'+lm+'-'+ld;
-    const lastWkData=S.weeks[lastWk]||{};
-    lastWeekGoal=lastWkData.target||'';
-  }
-
-  // Perfect days this week
   const perfectDays=dates.filter(ds=>isPerfect(S.days[ds]||{})).length;
 
   content.innerHTML=`
@@ -1124,7 +1164,6 @@ function renderWeeklyPlan(){
       <div class="wplan-week">Week of ${fmtDate(startDs)}</div>
       <div class="wplan-range">${fmtDate(startDs)} – ${fmtDate(endDs)} · ${mn}</div>
       ${monthGoal?`<div class="wplan-month-goal">Month goal: ${monthGoal}</div>`:'<div class="wplan-month-goal" style="color:var(--muted2);">No monthly goal set yet</div>'}
-      
       <div class="sec-lbl" style="margin-bottom:8px;margin-top:4px;">This Month's 4 Projects</div>
       ${(()=>{
         const mProjs=(S.months[mn]||{}).projects||['','','',''];
@@ -1136,15 +1175,12 @@ function renderWeeklyPlan(){
         `:'').join('');
       })()}
       <div class="sec-lbl" style="margin-bottom:8px;margin-top:12px;">Weekly Target</div>
-      <input class="ns-input" id="wk-target" value="${wkData.target||''}" placeholder="${lastWeekGoal ? 'Last week: '+lastWeekGoal : 'One outcome this week...'}" style="margin-bottom:8px;" />
-      ${lastWeekGoal&&!wkData.target?`<div style="font-size:9px;color:var(--muted);margin-bottom:8px;cursor:pointer;" onclick="document.getElementById('wk-target').value='${lastWeekGoal.replace(/'/g,"\'")}'"">↑ Tap to carry forward last week's goal</div>`:''}
-      
+      <input class="ns-input" id="wk-target" value="${(wkData.target||'').replace(/"/g,'&quot;')}" placeholder="One outcome this week..." style="margin-bottom:8px;" />
       <div class="done-toggle ${wkData.done?'done':''}" id="wk-done-toggle" onclick="toggleWeekDone('${wk}')">
         <div class="done-box"><svg viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12"/></svg></div>
         <div class="done-label">Weekly goal achieved</div>
       </div>
     </div>
-
     <div class="card" style="margin-bottom:8px;">
       <div class="rev-stat-row">
         <div class="rev-stat"><div class="rev-stat-n" style="color:var(--lime)">${perfectDays}</div><div class="rev-stat-l">Perfect</div></div>
@@ -1154,19 +1190,16 @@ function renderWeeklyPlan(){
         <div class="rev-stat"><div class="rev-stat-n" style="color:var(--spirit)">${dates.filter(ds=>(S.days[ds]||{}).spirit).length}</div><div class="rev-stat-l">Spirit</div></div>
       </div>
     </div>
-
     <div class="card" style="margin-bottom:8px;">
       <div class="sec-lbl" style="margin-bottom:10px;">B-Day Deep Focus Plan</div>
-      <input class="ns-input" id="wk-bplan" value="${wkData.bPlan||''}" placeholder="B-day deep focus plan..." style="margin-bottom:0;" />
+      <input class="ns-input" id="wk-bplan" value="${(wkData.bPlan||'').replace(/"/g,'&quot;')}" placeholder="B-day deep focus plan..." style="margin-bottom:0;" />
     </div>
-
     <div class="card" style="margin-bottom:8px;">
       <div class="sec-lbl" style="margin-bottom:10px;">Weekly Review Notes</div>
       <textarea class="ns-input" id="wk-review" rows="3" placeholder="How did the week go? What to fix?">${wkData.reviewNotes||''}</textarea>
       <div class="sec-lbl" style="margin-bottom:6px;margin-top:4px;">How did the weekly goal go?</div>
       <textarea class="ns-input" id="wk-goalreview" rows="2" placeholder="Did you hit it? Why / why not?">${wkData.howGoalWent||''}</textarea>
     </div>
-
     <button class="btn btn-lime" onclick="saveWeeklyPlan('${wk}')">Save Weekly Plan</button>
     <button class="btn btn-ghost" onclick="exportWeeklyReviewToCal()">Export Review to Calendar</button>
     <div style="margin-top:24px;border-top:1px solid var(--border);padding-top:20px;">
@@ -1192,7 +1225,7 @@ function saveWeeklyPlan(wk){
   S.weeks[wk].bPlan=document.getElementById('wk-bplan').value.trim();
   S.weeks[wk].reviewNotes=document.getElementById('wk-review').value.trim();
   S.weeks[wk].howGoalWent=document.getElementById('wk-goalreview').value.trim();
-  save(); toast('Weekly plan saved');
+  save(); toast('Weekly plan saved — synced');
 }
 
 function exportWeeklyReviewToCal(){
@@ -1289,21 +1322,18 @@ function toast(msg){
   toastT=setTimeout(()=>el.classList.remove('show'),2200);
 }
 
-
 // ══════════════════════════════════════════════
 // EDIT PAST DAY
 // ══════════════════════════════════════════════
 let pastDayEdit = {};
 
 function openPastModal(){
-  // Default to yesterday
   const d=new Date(); d.setDate(d.getDate()-1);
   const y=d.getFullYear();
   const m=String(d.getMonth()+1).padStart(2,'0');
   const dy=String(d.getDate()).padStart(2,'0');
   const ds=y+'-'+m+'-'+dy;
   document.getElementById('past-date').value=ds;
-  // Load existing data if any
   const existing=S.days[ds]||{};
   pastDayEdit={...existing};
   syncPastModal();
@@ -1341,7 +1371,6 @@ function togglePast(k){
   syncPastModal();
 }
 
-// Update pastDayEdit when date changes
 document.getElementById('past-date').addEventListener('change',function(){
   const ds=this.value;
   if(!ds) return;
@@ -1361,9 +1390,8 @@ function savePastDay(){
   save();
   closePastModal();
   renderHistory();
-  toast('Past day saved');
+  toast('Past day saved — synced');
 }
-
 
 // ══════════════════════════════════════════════
 // DATA BACKUP
@@ -1378,47 +1406,56 @@ function exportData(){
   a.href=url; a.download='mos-backup-'+ds+'.json';
   document.body.appendChild(a); a.click();
   document.body.removeChild(a); URL.revokeObjectURL(url);
-  toast('Backup saved — store in iCloud');
+  toast('Backup saved');
 }
 
 function importData(e){
   const file=e.target.files[0];
   if(!file) return;
   const reader=new FileReader();
-  reader.onload=function(ev){
+  reader.onload=async function(ev){
     try{
       const imported=JSON.parse(ev.target.result);
-      // Validate it looks like MOS data
       if(typeof imported.days!=='object') throw new Error('Invalid');
       if(confirm('This will replace all your current data. Are you sure?')){
         S=imported;
-        // Ensure all required keys exist
         if(!S.milestonesSeen) S.milestonesSeen=[];
         if(!S.months) S.months={};
         if(!S.weeks) S.weeks={};
         if(!S.projects) S.projects=[];
-        save();
+        await save();
         renderToday();
-        toast('Backup restored');
+        toast('Backup restored — synced');
       }
     } catch(err){
       toast('Invalid backup file');
     }
   };
   reader.readAsText(file);
-  e.target.value=''; // reset so same file can be re-imported
+  e.target.value='';
 }
 
 // ══════════════════════════════════════════════
-// INIT
+// INIT — load cloud data first, then render
 // ══════════════════════════════════════════════
-load();
-renderToday();
-// Safely attach blur listeners after DOM is ready
-const nsText=document.getElementById('ns-text');
-const nsMetric=document.getElementById('ns-metric');
-if(nsText){ nsText.addEventListener('blur',saveNorthStar); nsText.addEventListener('input',function(){ S.northStar=nsText.value; save(); }); }
-if(nsMetric){ nsMetric.addEventListener('blur',saveNorthStar); nsMetric.addEventListener('input',function(){ S.nsMetric=nsMetric.value; save(); }); }
+async function init() {
+  await load();
+  document.getElementById('loading-screen').classList.add('hidden');
+  renderToday();
+
+  const nsText=document.getElementById('ns-text');
+  const nsMetric=document.getElementById('ns-metric');
+  if(nsText){
+    nsText.addEventListener('blur', saveNorthStar);
+    nsText.addEventListener('input', function(){ S.northStar=nsText.value; save(); });
+  }
+  if(nsMetric){
+    nsMetric.addEventListener('blur', saveNorthStar);
+    nsMetric.addEventListener('input', function(){ S.nsMetric=nsMetric.value; save(); });
+  }
+}
+
+init();
 </script>
 </body>
 </html>
