@@ -1,6 +1,5 @@
-const CACHE = 'mos-v2';
+const CACHE = 'mos-v3';
 const FILES = ['./'];
-
 self.addEventListener('install', function(e) {
   e.waitUntil(
     caches.open(CACHE).then(function(c) {
@@ -9,23 +8,31 @@ self.addEventListener('install', function(e) {
   );
   self.skipWaiting();
 });
-
 self.addEventListener('activate', function(e) {
+  e.waitUntil(
+    caches.keys().then(function(keys) {
+      return Promise.all(
+        keys.filter(function(key) {
+          return key !== CACHE;
+        }).map(function(key) {
+          return caches.delete(key);
+        })
+      );
+    })
+  );
   self.clients.claim();
 });
-
 self.addEventListener('fetch', function(e) {
   e.respondWith(
-    caches.match(e.request).then(function(cached) {
-      if (cached) return cached;
-      return fetch(e.request).then(function(res) {
-        var clone = res.clone();
-        caches.open(CACHE).then(function(c) {
-          c.put(e.request, clone);
-        });
-        return res;
-      }).catch(function() {
-        return caches.match('./');
+    fetch(e.request).then(function(res) {
+      var clone = res.clone();
+      caches.open(CACHE).then(function(c) {
+        c.put(e.request, clone);
+      });
+      return res;
+    }).catch(function() {
+      return caches.match(e.request).then(function(cached) {
+        return cached || caches.match('./');
       });
     })
   );
