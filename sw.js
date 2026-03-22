@@ -1,4 +1,4 @@
-const CACHE = 'mos-v1';
+const CACHE = 'mos-v2';
 const FILES = ['./'];
 
 self.addEventListener('install', function(e) {
